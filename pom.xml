@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Created on Jan 08 2009
+
+ This program is free software; you can redistribute it and/or modify it under the terms of the
+ GNU General Public License as published by the Free Software Foundation; either version 2 of
+ the License. You may obtain a copy of the License at
+
+  http://www.gnu.org/licenses/gpl-2.0.txt
+
+ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ the GNU General Public License for more details.
+
+ Copyright @2009 the original author or authors.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd ">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>se.pearglans</groupId>
+  <artifactId>fest-javafx</artifactId>
+  <version>0.1</version>
+  <name>FEST JavaFX</name>
+  <description>Functional Testing of JavaFX UIs</description>
+    <properties>
+        <jfxhome>/home/karlw/apps/javafx-sdk1.3</jfxhome>
+    </properties>
+  <build>
+
+       <sourceDirectory>src/main/fx</sourceDirectory>
+      
+      <!--plugins>
+          <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-compiler-plugin</artifactId>
+              <configuration>
+                  <compilerId>javafxc</compilerId>
+                  <include>**/*.fx</include>
+                  <fork>true</fork>  
+              </configuration>
+              <dependencies>
+                  <dependency>
+                      <groupId>net.sf.m2-javafxc</groupId>
+                      <artifactId>plexus-compiler-javafxc</artifactId>
+                      <version>0.3</version>
+                  </dependency>
+              </dependencies>
+          </plugin>
+      </plugins-->
+
+  <plugins>
+    <plugin>
+      <groupId>org.easytesting</groupId>
+      <artifactId>fest-javafx-maven</artifactId>
+      <version>1.0a1</version>
+      <executions>
+        <execution>
+          <phase>compile</phase>
+          <goals>
+            <goal>compile</goal>
+          </goals>
+        </execution>
+      </executions>
+    </plugin>
+  </plugins>
+
+
+    <!--plugins>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>process-test-sources</phase>
+            <configuration>
+              <tasks>
+                <echo>Compiling JavaFX test sources</echo>
+                <property name="javafx.home" value="${env.JAVAFX_HOME}" />
+                <path id="javafxc.classpath">
+                  <fileset dir="${javafx.home}">
+                    <include name="**/javafxrt.jar" />
+                    <include name="**/javafxc.jar" />
+                    <include name="**/toolchain.jar" />
+                  </fileset>
+                </path>
+                <path id="javafx.classpath">
+                  <fileset dir="${javafx.home}">
+                    <include name="**/javafxrt.jar" />
+                    <include name="**/javafxc.jar" />
+                    <include name="**/toolchain.jar" />
+                    <include name="**/javafxgui.jar" />
+                    <include name="**/javafx-swing.jar" />
+                    <include name="**/Scenario.jar" />
+                    <include name="**/websvc.jar" />
+                  </fileset>
+                </path>
+                <taskdef classname="com.sun.tools.javafx.ant.JavaFxAntTask" classpathref="javafxc.classpath" name="javafxc" />
+                <mkdir dir="${project.build.testOutputDirectory}" />
+                <javafxc destdir="${project.build.testOutputDirectory}" compilerclasspathref="javafxc.classpath"
+                  debug="true" verbose="true">
+                  <src path="src/test/javafx" />
+                  <classpath refid="javafx.classpath" />
+                </javafxc>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins-->
+  </build>
+
+    <!--  <repository>
+          <id>java.net</id>
+          <url>http://download.java.net/maven/1</url>
+          <layout>legacy</layout>
+        </repository>-->
+
+    <repositories>
+      <repository>
+          <id>m2-javafxc</id>
+          <name>Sourceforge M2-javafxc static repo</name>
+          <url>http://openjfx.sourceforge.net/m2repo</url>
+      </repository>
+      </repositories>
+  <dependencies>
+    <!--dependency>
+      <groupId>com.sun.</groupId>
+      <artifactId>javafxrt</artifactId>
+      <version>1.0</version>
+      <scope>system</scope>
+      <systemPath>${jfxhome}/lib/shared/javafxrt.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.openjfx</groupId>
+      <artifactId>javafxc</artifactId>
+      <version>1.0</version>
+      <scope>system</scope>
+      <systemPath>${jfxhome}/lib/shared/javafxc.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.openjfx</groupId>
+      <artifactId>toolchain</artifactId>
+      <version>1.0</version>
+      <scope>system</scope>
+      <systemPath>${jfxhome}/lib/shared/toolchain.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.openjfx</groupId>
+      <artifactId>javafxgui</artifactId>
+      <version>1.0</version>
+      <scope>system</scope>
+      <systemPath>${jfxhome}/lib/desktop/javafxgui.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.openjfx</groupId>
+      <artifactId>javafx-swing</artifactId>
+      <version>1.0</version>
+      <scope>system</scope>
+      <systemPath>${jfxhome}/lib/desktop/javafx-swing.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.openjfx</groupId>
+      <artifactId>Scenario</artifactId>
+      <version>1.0</version>
+      <scope>system</scope>
+      <systemPath>${jfxhome}/lib/desktop/Scenario.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.openjfx</groupId>
+      <artifactId>websvc</artifactId>
+      <version>1.0</version>
+      <scope>system</scope>
+      <systemPath>${jfxhome}/lib/desktop/websvc.jar</systemPath>
+    </dependency-->
+  </dependencies>
+</project>
