@@ -11,8 +11,8 @@ package se.pearglans.fx;
 import javafx.async.JavaTaskBase;
 import javafx.async.RunnableFuture;
 // Scala project ScalaFactorial
-import se.pearglans.ScalaEntry;
-import se.pearglans.ScalaToJavaFX;
+import se.pearglans.*;
+
 
 package class JavaFXScalaBridge extends JavaTaskBase, ScalaToJavaFX {
 
@@ -24,6 +24,10 @@ package class JavaFXScalaBridge extends JavaTaskBase, ScalaToJavaFX {
     package function calcFactorial(i: Integer): Void {
         scalaEntry.calcFact(i);
     }
+    package function add(item:MNode,target:MNode): Void {
+        //scalaEntry.calcFact(i);
+    }
+
     package function closeScala(): Void {
         scalaEntry.closeScala();
     }
@@ -35,6 +39,8 @@ package class JavaFXScalaBridge extends JavaTaskBase, ScalaToJavaFX {
     // Implemented in JavaFXMain, called here from 'updateFact'
     package var updateFactText: function(text: String): Void;
 
+    package var updateTreeNode: function(text: MNode): Void;
+
     // Interface ScalaToJavaFX
 
     // Called from within ScalaEntry
@@ -44,7 +50,17 @@ package class JavaFXScalaBridge extends JavaTaskBase, ScalaToJavaFX {
             function(): Void {
                 updateFactText(number);
         });
-    }
+    };
+
+    override function updateTree(node: MNode): Void {
+        FX.deferAction(
+            // Called on JavaFX-EDT
+            function(): Void {
+                updateTreeNode(node);
+        });
+    };
+
+    
 
     // Implementation of JavaTaskBase
     // JavaTaskBase provides a way to run Java/Scala application code
@@ -66,3 +82,4 @@ package class JavaFXScalaBridge extends JavaTaskBase, ScalaToJavaFX {
         initJavaFX(scalaEntry);
     };
 }
+
