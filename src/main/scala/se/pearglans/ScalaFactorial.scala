@@ -19,6 +19,7 @@ final class ScalaEntry(private val fx: ScalaToJavaFX) extends RunnableFuture {
 
   private var fact: Factorial = null
 
+  private var root:MNode = null
   // JavaFX Interface RunnableFuture
   def run: Unit = {
     fact = new Factorial {
@@ -28,6 +29,13 @@ final class ScalaEntry(private val fx: ScalaToJavaFX) extends RunnableFuture {
       }
     }
     fact.start
+  }
+
+  def addNode(item:MNode, target:MNode) {
+    root match {
+      case null => root = item
+      case _ => target.add(item) 
+    }
   }
 
   // Called from within JavaFXScalaBridge
@@ -109,6 +117,10 @@ case class MNode(@BeanProperty val pos:Point2D, val text:String) {
   //List[MNode]
   //def this() = this(Nil,null)
   //def this(p:Point2D) = this(Nil,p)
+  var children:List[MNode] = Nil
+  def add(item:MNode) {
+    item.children =  item :: this.children     
+  }
 
 }
 

@@ -12,6 +12,7 @@ import javafx.async.JavaTaskBase;
 import javafx.async.RunnableFuture;
 // Scala project ScalaFactorial
 import se.pearglans.*;
+import javafx.scene.Node;
 
 
 package class JavaFXScalaBridge extends JavaTaskBase, ScalaToJavaFX {
@@ -25,7 +26,14 @@ package class JavaFXScalaBridge extends JavaTaskBase, ScalaToJavaFX {
         scalaEntry.calcFact(i);
     }
     package function add(item:MNode,target:MNode): Void {
-        //scalaEntry.calcFact(i);
+        scalaEntry.addNode(item,target);
+    }
+
+    package function sync(item:MNode,screenNodes:Node[]): Void {
+        
+
+        //scalaEntry.sync(item,nodes);
+        []
     }
 
     package function closeScala(): Void {

@@ -8,12 +8,6 @@ package se.pearglans.fx;
  * Date: 2010-okt-04
  * Time: 13:04:13
  * To change this template use File | Settings | File Templates.
-*
-opa=$(find lib/ -name '*.jar' -printf "%f:")
-tjo=$opa:target/scala_2.8.0/classes/
-karlw@karlw-laptop:/var/karlw/src/scalafxjava$ ~/apps/javafx-sdk1.3/bin/javafxc -classpath $tjo:project/boot/scala-2.8.0/lib/scala-library.jar src/main/fx/se/pearglans/fx/*.fx 
-karlw@karlw-laptop:/var/karlw/src/scalafxjava$ ~/apps/javafx-sdk1.3/bin/javafx -classpath $tjo:project/boot/scala-2.8.0/lib/scala-library.jar:src/main/fx/ se.pearglans.fx.HelloWorld
-
  */
 
 import javafx.scene.control.TextBox;
@@ -56,7 +50,7 @@ def fxScalaBridge = JavaFXScalaBridge {
         stage.visible = true;
     };
     updateTreeNode: function(node: MNode): Void {
-        //factLabel.text = "tjo";
+        //sync(node,labels)
     };
     // Called from Scala
     updateFactText: function(text: String): Void {
@@ -124,19 +118,7 @@ class LabelNode extends Label {
         onMouseReleased = function (ev: MouseEvent) : Void {
             draggedNode = null;
         }
-
-        /*
-        onMouseDragged = function (ev: MouseEvent) : Void {
-            println("{ev.x} : {ev.y}");
-            var efx = if (ev.x > 0) then ev.x else 0;
-            var efy = if (ev.y > 0) then ev.y else 0;
-            this.data.pos().setX(efx);
-            this.data.pos().setY(efy);
-            //insert LineTo { x: efx, y: efy } into path.elements;
-        }*/
-
     };
-
 
     /*
     */
@@ -163,8 +145,6 @@ var backGround = Rectangle {
             if(draggedNode != null) {
                 var efx = if (ev.x > 0) then ev.x else 0;
                 var efy = if (ev.y > 0) then ev.y else 0;
-                //this.data.pos().setX(efx);
-                //this.data.pos().setY(efy);
                 draggedNode.translateX = efx;
                 draggedNode.translateY = efy;
             }
@@ -177,7 +157,55 @@ var backGroundClip = Rectangle {
         x:0,
         y:0
 }
-var drawArea = Group { content: [backGround] };
+var drawArea:Group = Group { content: [backGround], onMousePressed : function(ev: MouseEvent) {
+
+    var efx = if (ev.x > 0) then ev.x else 0;
+    var efy = if (ev.y > 0) then ev.y else 0;
+    
+    if(currentTextInput != null) {
+        delete currentTextInput from drawArea.content;
+        currentTextInput = null;
+    } else {
+        currentTextInput = TextBox {
+            columns: 25,
+            translateX:efx,
+            translateY:efy,
+            opacity:0.5,
+            style: "-fx-font: 25pt ""Impact, Helvetica"";-fx-font-style: regular;-fx-text-fill: black; -fx-border-color: white;-fx-border-width: 1;-fx-background-color: white;-fx-caret-color:white"
+        }
+        currentTextInput.onKeyPressed = function(ev: KeyEvent) {
+            if(ev.code == KeyCode.VK_ENTER) {
+                var newText = currentTextInput.text;
+                delete currentTextInput from drawArea.content;
+                currentTextInput = null;
+
+                var node = new MNode(new Point2D(efx,efy),newText);
+                var label= LabelNode {
+                    textFill: Color.BLACK,
+                    data: node
+                }
+                label.bindit();
+                insert label into drawArea.content;
+
+                fxScalaBridge.add(selectedNode, node);
+                if(selectedNode != null) {
+                    var cubicCurve = CubicCurve {
+                        //startX : bind selectedLbl.translateX startY : bind selectedLbl.translateY
+                        controlX1 : bind 0.7 controlY1 : 0.7
+                        controlX2 : bind 0.7 controlY2 : 0.7
+                        endX : bind efx endY : bind efy
+                    };
+                    insert cubicCurve into drawArea.content;
+                }
+
+                selectedLbl = label;
+            }
+        };
+        insert currentTextInput into drawArea.content;
+        currentTextInput.requestFocus();
+    }
+
+} };
 stage = Stage { title: "JavaFX / Scala : Factorials" visible: false // !!
     onClose: function() { fxScalaBridge.closeScala(); }
     scene: Scene {
@@ -194,65 +222,18 @@ stage = Stage { title: "JavaFX / Scala : Factorials" visible: false // !!
     }
 }
 
-
+                                                              
 
 
 var currentTextInput : TextBox = null;
 
 var selectedNode : MNode = null;
 
-drawArea.onMousePressed = function(ev: MouseEvent) {
+var labels : MNode[] = [];
 
-    var efx = if (ev.x > 0) then ev.x else 0;
-    var efy = if (ev.y > 0) then ev.y else 0;
-    if(currentTextInput != null) {
-        delete currentTextInput from drawArea.content;
-        currentTextInput = null;
 
-    } else {
-        currentTextInput = TextBox {
-            columns: 25,
-            translateX:efx,
-            translateY:efy,
-            opacity:0.5,
-            style: "-fx-font: 25pt ""Impact, Helvetica"";-fx-font-style: regular;-fx-text-fill: black; -fx-border-color: white;-fx-border-width: 1;-fx-background-color: white;-fx-caret-color:white"
-        }
-        currentTextInput.onKeyPressed = function(ev: KeyEvent) {
-            if(ev.code == KeyCode.VK_ENTER) {
-                var newText = currentTextInput.text;
-                delete currentTextInput from drawArea.content;
-                currentTextInput = null;
-                var p = new Point2D(efx,efy);
-                var node = new MNode(p,newText);
-                var label= LabelNode {
-                    //override function getData(): MNode { return node },
-                    //getData : function() : MNode { return node };,
-                    //def getData:MNode = node
-                    textFill: Color.BLACK,
-                    data: node
-                }
-                label.bindit();
-                insert label into drawArea.content;
 
-                fxScalaBridge.add(selectedNode, node);
-                if(selectedNode != null) {
-                    var cubicCurve = CubicCurve {
-                        //startX : bind selectedLbl.translateX startY : bind selectedLbl.translateY
-                        controlX1 : bind 0.7 controlY1 : 0.7
-                        controlX2 : bind 0.7 controlY2 : 0.7
-                        endX : bind efx endY : bind efy                     
-                    };
-                    insert cubicCurve into drawArea.content;
-                }
-
-                selectedLbl = label;
-            }
-        };
-        insert currentTextInput into drawArea.content;
-        currentTextInput.requestFocus();
-    }
-
-}
+//drawArea.
 /*
 drawArea.onMousePressed = function(ev: MouseEvent) {
 
