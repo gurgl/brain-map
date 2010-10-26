@@ -113,13 +113,20 @@ class Point2D(var x:Float, var y:Float) extends HasPropertyChangeListener {
   
 }
 
-case class MNode(@BeanProperty val pos:Point2D, val text:String) {
+case class MNode(@BeanProperty val pos:Point2D, var text:String) extends HasPropertyChangeListener {
   //List[MNode]
   //def this() = this(Nil,null)
   //def this(p:Point2D) = this(Nil,p)
   var children:List[MNode] = Nil
   def add(item:MNode) {
     item.children =  item :: this.children     
+  }
+
+  def setText(v:String) : Unit =  {
+    //println("x" + this.x);
+
+    pcs.firePropertyChange("text", this.text, v);
+    this.text = v;
   }
 
 }
