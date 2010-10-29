@@ -36,6 +36,7 @@ final class ScalaEntry(private val fx: ScalaToJavaFX) extends RunnableFuture {
       case null => root = item
       case _ => target.add(item) 
     }
+    fx.updateTree(target)
   }
 
   // Called from within JavaFXScalaBridge
@@ -51,6 +52,21 @@ import scala.actors.Actor
 import actors.Actor._
 import math.BigInt
 
+object Tjo {
+
+  def getModel : MNode = {
+    println("woo")
+    val r = new MNode(new Point2D(50,50),"tja")
+    val child11 = new MNode(new Point2D(150,50),"tja2")
+    val child12 = new MNode(new Point2D(50,150),"tja3")
+    val child21 = new MNode(new Point2D(150,150),"tja4")
+    r.children = List(child11,child12)
+    child12.children = List(child21)
+    println("Tjing" + r)
+    r
+  }
+  
+}
 protected abstract class Factorial() extends Actor {
 
   override def act() = {
@@ -72,7 +88,7 @@ protected abstract class Factorial() extends Actor {
   protected def value(i: BigInt)
 }
 
-import java .beans.PropertyChangeListener;
+import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
 trait HasPropertyChangeListener {
@@ -104,13 +120,15 @@ class Point2D(var x:Float, var y:Float) extends HasPropertyChangeListener {
     pcs.firePropertyChange("y", this.y, v);
     this.y = v;
   }
+  def getX = x
+  def getY = y
 
   /*override def x_$eq(v:Float) : Unit =  {
     pcs.firePropertyChange("x", this.x, this.x=v);
   }
   */
   
-  
+
 }
 
 case class MNode(@BeanProperty val pos:Point2D, var text:String) extends HasPropertyChangeListener {
@@ -118,6 +136,16 @@ case class MNode(@BeanProperty val pos:Point2D, var text:String) extends HasProp
   //def this() = this(Nil,null)
   //def this(p:Point2D) = this(Nil,p)
   var children:List[MNode] = Nil
+  import scala.collection.JavaConversions._
+  def getChildren : java.util.List[MNode] = {
+    val r = asList(children)
+    println(children.size)
+    if(r == null)
+      throw new RuntimeException("wtf")
+    r
+    //scala.collection.JavaConversions.asList(children)
+  }
+
   def add(item:MNode) {
     item.children =  item :: this.children     
   }

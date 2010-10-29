@@ -25,6 +25,15 @@ package class JavaFXScalaBridge extends JavaTaskBase, ScalaToJavaFX {
     package function calcFactorial(i: Integer): Void {
         scalaEntry.calcFact(i);
     }
+
+    package function getModel(): MNode {
+        print("WTF1");
+        var r = se.pearglans.Tjo.getModel();
+        print(r);
+        print("SLT");
+        return r;
+    }
+
     package function add(item:MNode,target:MNode): Void {
         scalaEntry.addNode(item,target);
     }

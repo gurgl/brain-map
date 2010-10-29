@@ -93,16 +93,22 @@ def factButton: Button = Button { font: font text: " 1 ! "
 import com.cedarsoft.fx.JavaFxBridge;
 import com.sun.javafx.runtime.FXObject;
 
+
+
+def model:MNode = fxScalaBridge.getModel();
+
 var draggedNode:Node = null;
-class LabelNode extends Container {
+class LabelNode extends Group {
 
 
     /*override var translateY = bind this.data.pos().y();*/
     var data:MNode;
 
-    override var style = "-fx-font: 25pt ""Impact, Helvetica"";-fx-font-style: regular;-fx-text-fill: black; -fx-border-color: white;-fx-border-width: 1;-fx-background-color: white;-fx-caret-color:white";         
+    override var style = "-fx-font: 25pt ""Impact, Helvetica"";-fx-font-style: regular;-fx-text-fill: black; -fx-border-color: white;-fx-border-width: 1;-fx-background-color: blue;-fx-caret-color:white";         
 
     var currentContent : Node = null;
+
+    var cfill: Color = Color.TRANSPARENT;
 
     function setNonEditable() : Void {
         if(this.currentContent != null) {
@@ -110,7 +116,8 @@ class LabelNode extends Container {
             delete cont from content;
         }
         var currentContent = Label {
-            textFill: Color.BLACK,
+            textFill: bind cfill
+
         }
         JavaFxBridge.bridge( this.data ).to( currentContent as FXObject ).connecting(
           //JavaFxBridge.bind( "text" ).to( "text" )
@@ -120,6 +127,20 @@ class LabelNode extends Container {
         //label.bindit();
         insert currentContent into content;
 
+    }
+    function setSelected(sele:Boolean) :Void {
+        if(selectedLbl != null and selectedLbl != this) {
+            selectedLbl.setSelected(false);            
+        }
+        if(sele) {
+            cfill = Color.GREEN;
+            currentContent.style = "-fx-font: 25pt ""Impact, Helvetica"";-fx-font-style: regular;-fx-text-fill: black; -fx-border-color: white;-fx-border-width: 1;-fx-background-color: green;-fx-caret-color:white";
+        } else {
+           cfill = Color.BLACK;
+            currentContent.style = "-fx-font: 25pt ""Impact, Helvetica"";-fx-font-style: regular;-fx-text-fill: black; -fx-border-color: white;-fx-border-width: 1;-fx-background-color: white;-fx-caret-color:white";
+
+        }
+        selectedLbl = this;
     }
 
     function remove(container:Group) : Void {
@@ -160,7 +181,7 @@ class LabelNode extends Container {
                             insert cubicCurve into drawArea.content;
                         } */
 
-                        selectedLbl = this;
+                        this.setSelected(true);
                     }
                 }
             };
@@ -176,16 +197,18 @@ class LabelNode extends Container {
 
         JavaFxBridge.bridge( this.data.pos() ).to( this as FXObject ).connecting(
           //JavaFxBridge.bind( "text" ).to( "text" )
+          JavaFxBridge.bind( "y" ).to( "translateY" ).withInverse(),
           JavaFxBridge.bind( "x" ).to( "translateX" ).withInverse()
         );
-        JavaFxBridge.bridge( this.data.pos() ).to( this as FXObject ).connecting(
-          //JavaFxBridge.bind( "text" ).to( "text" )
-          JavaFxBridge.bind( "y" ).to( "translateY" ).withInverse()
-        );
+        /*JavaFxBridge.bridge( this.data.pos() ).to( this as FXObject ).connecting(
+
+        );*/
         
         onMousePressed = function (ev: MouseEvent) : Void {
             draggedNode = this;
+            this.setSelected(true);
         }
+        
         onMouseReleased = function (ev: MouseEvent) : Void {
             draggedNode = null;
         }
@@ -217,8 +240,11 @@ var backGround = Rectangle {
             if(draggedNode != null) {
                 var efx = if (ev.x > 0) then ev.x else 0;
                 var efy = if (ev.y > 0) then ev.y else 0;
-                draggedNode.translateX = efx;
-                draggedNode.translateY = efy;
+                //draggedNode.translateX = efx;
+                var t = draggedNode as LabelNode;
+                t.data.pos().setX(efx);
+                t.data.pos().setY(efy);
+                //draggedNode.translateY = efy;
             }
             //insert LineTo { x: efx, y: efy } into path.elements;
         }
@@ -229,7 +255,8 @@ var backGroundClip = Rectangle {
         x:0,
         y:0
 }
-var drawArea:Group = Group { content: [backGround], onMousePressed : function(ev: MouseEvent) {
+var drawArea:Group = Group { content: [backGround],
+    onMousePressed : function(ev: MouseEvent) {
 
         if(ev.source == backGround) {
         var efx = if (ev.x > 0) then ev.x else 0;
@@ -244,8 +271,71 @@ var drawArea:Group = Group { content: [backGround], onMousePressed : function(ev
         label.setEditable(drawArea);
         insert label into drawArea.content;
         }
-    }
+    },
+                onKeyPressed : function(ev: KeyEvent) {
+                                print("Yo2");
+                                if(ev.code == KeyCode.VK_INSERT) {
+                                    if(selectedLbl != null) {
+                                        var mnode = new MNode(new Point2D(selectedLbl.translateX,selectedLbl.translateY),"");
+                                        var label= LabelNode {
+                                            data: mnode
+                                        }
+                                        label.bindit();
+                                        insert label into drawArea.content;
+                                        label.setEditable(drawArea);
+                                    } else {
+
+                                    }
+                                }
+                            };
+
 };
+
+
+
+function traverse(parent:MNode, node:MNode) : Void {
+    var label = LabelNode {
+        data: node
+    }
+    label.bindit();
+    label.setNonEditable();
+    insert label into drawArea.content;
+    if(parent != null) {
+        var cubicCurve = CubicCurve {
+            //startX : bind selectedLbl.translateX startY : bind selectedLbl.translateY
+            controlX1 : bind 80.7 controlY1 : 21.7,
+            controlX2 : bind 122.7 controlY2 : 40.7,
+            fill: Color.TRANSPARENT,
+            stroke: Color.RED
+
+            //endX : bind efx endY : bind efy
+        };
+        JavaFxBridge.bridge( parent.pos() ).to( cubicCurve as FXObject ).connecting(
+          JavaFxBridge.bind( "x" ).to( "startX")
+        );
+        JavaFxBridge.bridge( parent.pos() ).to( cubicCurve as FXObject ).connecting(
+          JavaFxBridge.bind( "y" ).to( "startY" ).withInverse()
+        );
+        JavaFxBridge.bridge( label.data.pos() ).to( cubicCurve as FXObject ).connecting(
+          JavaFxBridge.bind( "x" ).to( "endX" ).withInverse()
+        );
+        JavaFxBridge.bridge( label.data.pos() ).to( cubicCurve as FXObject ).connecting(
+          JavaFxBridge.bind( "y" ).to( "endY" ).withInverse()
+        );
+        insert cubicCurve into drawArea.content;
+    }
+    label.setSelected(true);
+    print("innan Node");
+    print(node);
+    var children = node.getChildren();
+    for(l in children) {
+    //for(l in [0..children.length-1]) {
+        var n = l as MNode;
+        traverse(node, n)
+    }
+}
+
+traverse(null,model);
 
 /*
 if(currentTextInput != null) {
@@ -287,7 +377,9 @@ if(currentTextInput != null) {
 
 
  */
-stage = Stage { title: "JavaFX / Scala : Factorials" visible: false // !!
+stage = Stage {
+    title: "JavaFX / Scala : Factorials"
+    visible: false // !!
     onClose: function() { fxScalaBridge.closeScala(); }
     scene: Scene {
         width: 800 
@@ -300,8 +392,10 @@ stage = Stage { title: "JavaFX / Scala : Factorials" visible: false // !!
                 ]
             }
         }
+        
     }
 }
+
 
                                                               
 
@@ -312,7 +406,7 @@ var selectedNode : MNode = null;
 
 var labels : MNode[] = [];
 
-
+drawArea.requestFocus();
 
 //drawArea.
 /*

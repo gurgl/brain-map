@@ -70,6 +70,7 @@ public class Fx2PropertyChangeEvent extends AbstractFX2Java {
 
   public Fx2PropertyChangeEvent( @NotNull FXObject bindee, @Nullable PropertyChangeSupport pcs ) {
     super( bindee );
+    System.err.println("Tjo"+bindee);
     this.pcs = pcs == null ? new PropertyChangeSupport( this ) : pcs;
   }
 
