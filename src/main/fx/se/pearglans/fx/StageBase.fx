@@ -1,7 +1,5 @@
 package se.pearglans.fx;
 
-
-
 /**
  * Created by IntelliJ IDEA.
  * User: karlw
@@ -253,10 +251,34 @@ var backGroundClip = Rectangle {
         width: 800,
         height: 400,
         x:0,
-        y:0
+        y:0,
+        fill:Color.TRANSPARENT
+        translateZ:2,
+
 }
 var drawArea:Group = Group { content: [backGround],
-    onMousePressed : function(ev: MouseEvent) {
+            focusTraversable:true,
+
+            onKeyTyped: function(ev: KeyEvent) { //onKeyPressed
+            print("Yo2 {ev.code}");
+            if(ev.code == KeyCode.VK_I) {
+                print("Insert");
+                if(selectedLbl != null) {
+                    print("Insert2");
+                    var mnode = new MNode(new Point2D(selectedLbl.translateX,selectedLbl.translateY),"");
+                    var label= LabelNode {
+                        data: mnode
+                    }
+                    label.bindit();
+                    insert label into drawArea.content;
+                    label.setEditable(drawArea);
+                } else {
+
+                }
+            }
+    };
+    
+    /*onMousePressed : function(ev: MouseEvent) {
 
         if(ev.source == backGround) {
         var efx = if (ev.x > 0) then ev.x else 0;
@@ -271,27 +293,11 @@ var drawArea:Group = Group { content: [backGround],
         label.setEditable(drawArea);
         insert label into drawArea.content;
         }
-    },
-                onKeyPressed : function(ev: KeyEvent) {
-                                print("Yo2");
-                                if(ev.code == KeyCode.VK_INSERT) {
-                                    if(selectedLbl != null) {
-                                        var mnode = new MNode(new Point2D(selectedLbl.translateX,selectedLbl.translateY),"");
-                                        var label= LabelNode {
-                                            data: mnode
-                                        }
-                                        label.bindit();
-                                        insert label into drawArea.content;
-                                        label.setEditable(drawArea);
-                                    } else {
-
-                                    }
-                                }
-                            };
+    },*/
+    
 
 };
-
-
+                    
 
 function traverse(parent:MNode, node:MNode) : Void {
     var label = LabelNode {
@@ -392,9 +398,9 @@ stage = Stage {
                 ]
             }
         }
-        
     }
 }
+
 
 
                                                               
