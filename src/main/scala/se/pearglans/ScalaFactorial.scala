@@ -105,7 +105,11 @@ trait HasPropertyChangeListener {
 }
 
 //@BeanInfo
-class Point2D(var x:Float, var y:Float) extends HasPropertyChangeListener {
+class Point2D(var x:Float, var y:Float) {
+  
+}
+//
+class Point2DBean(_x:Float,_y:Float) extends Point2D(_x,_y) with HasPropertyChangeListener {
 
   def setX(v:Float) : Unit =  {
     //println("x" + this.x);
@@ -127,16 +131,20 @@ class Point2D(var x:Float, var y:Float) extends HasPropertyChangeListener {
     pcs.firePropertyChange("x", this.x, this.x=v);
   }
   */
-  
-
 }
 
-case class MNode(@BeanProperty val pos:Point2D, var text:String) extends HasPropertyChangeListener {
+
+case class MNode(@BeanProperty val pos:Point2DBean, var text:String) extends HasPropertyChangeListener {
   //List[MNode]
   //def this() = this(Nil,null)
   //def this(p:Point2D) = this(Nil,p)
+
+  def this(p:Point2D,t:String) = this(new Point2DBean(p.x,p.y),t)
+  
   var children:List[MNode] = Nil
+
   import scala.collection.JavaConversions._
+
   def getChildren : java.util.List[MNode] = {
     val r = asList(children)
     println(children.size)

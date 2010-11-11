@@ -164,10 +164,22 @@ public abstract class AbstractJava2Fx {
    */
   @Nullable
   protected Object getValueByReflection( @NotNull @NonNls JavaProperty property ) throws NoSuchFieldException, IllegalAccessException {
-    Field field = bindee.getClass().getDeclaredField( property.getPropertyName() );
+    Field field = findField(bindee.getClass(), property );
     field.setAccessible( true );
     return field.get( bindee );
   }
+
+  public static Field findField(Class cls, JavaProperty p) {
+    Field[] fields = cls.getDeclaredFields();
+
+    for(int i = 0; i < fields.length ; i ++) {
+        if(fields[i].getName().equals(p.getPropertyName()) )
+            return fields[i];      
+    }
+    return findField(cls.getSuperclass(),p);
+  }
+
+
 
   /**
    * This method must only be called from EDT!

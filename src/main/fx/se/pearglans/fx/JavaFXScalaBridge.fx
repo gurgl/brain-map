@@ -45,6 +45,8 @@ package class JavaFXScalaBridge extends JavaTaskBase, ScalaToJavaFX {
         []
     }
 
+
+
     package function closeScala(): Void {
         scalaEntry.closeScala();
     }

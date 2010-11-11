@@ -169,15 +169,6 @@ class LabelNode extends Group {
                         currentTextInput = null;
 
                         fxScalaBridge.add(selectedNode, data);
-                        /*if(selectedNode != null) {
-                            var cubicCurve = CubicCurve {
-                                //startX : bind selectedLbl.translateX startY : bind selectedLbl.translateY
-                                controlX1 : bind 0.7 controlY1 : 0.7
-                                controlX2 : bind 0.7 controlY2 : 0.7
-                                endX : bind efx endY : bind efy
-                            };
-                            insert cubicCurve into drawArea.content;
-                        } */
 
                         this.setSelected(true);
                     }
@@ -256,28 +247,124 @@ var backGroundClip = Rectangle {
         translateZ:2,
 
 }
-var drawArea:Group = Group { content: [backGround],
-            focusTraversable:true,
 
-            onKeyTyped: function(ev: KeyEvent) { //onKeyPressed
-            print("Yo2 {ev.code}");
-            if(ev.code == KeyCode.VK_I) {
-                print("Insert");
-                if(selectedLbl != null) {
-                    print("Insert2");
-                    var mnode = new MNode(new Point2D(selectedLbl.translateX,selectedLbl.translateY),"");
-                    var label= LabelNode {
-                        data: mnode
-                    }
-                    label.bindit();
-                    insert label into drawArea.content;
-                    label.setEditable(drawArea);
-                } else {
+class MyCubicCurve extends CubicCurve {
 
+    /*var dsx:Number;
+    var dex:Number;
+    var dsy:Number;
+    var dey:Number;
+    */
+    public var dstartX:Number = 0; //bind dsx on replace { println("ooooiii") };
+    public var dendX:Number = 0; //bind dex;
+    public var dstartY:Number = 0; //bind dsy;
+    public var dendY:Number = 0; //bind dey; //on invalidate { println ("ooooiii")};
+
+    override def startX = bind this.dstartX; //{ java.lang.Math.cos(_startX - _endY ) * 20 + _startX };
+    override def startY = bind this.dstartY;
+    override def endY = bind this.dendY;
+    override def endX = bind this.dendX;
+    //                                                           sx
+    //100 - (100 - 50)/2 =                                          ex
+    //0 - (0 - 100) /2
+    function calcX(Xstart:Number,Xend:Number,Ystart:Number,Yend:Number) : Number {
+        var p1 = new Point2D(Xstart,Ystart);
+        var p2 = new Point2D(Xend,Yend);
+
+        (p1.x() ) - ((p1.x() - p2.x())/2 )      
+    }
+
+    function calcY(Xstart:Number,Xend:Number,Ystart:Number,Yend:Number) : Number {
+        var p = new Point2D(Xstart,Ystart);
+
+        //start - (start - end)/2
+        10
+    }
+
+    override var controlX1 = bind calcX(this.dstartX,this.dendX,this.dstartY,this.dendY); // + (this.dstartX - this.dendX)/2;
+    override var controlX2 = bind calcY(this.dstartX,this.dendX,this.dstartY,this.dendY); //this.dstartX + (this.dstartX - this.dendX)/2;
+
+    override var controlY1 = bind calcX(this.dstartY,this.dendY, this.dstartY,this.dendY); //this.dstartY + (this.dstartY + this.dendY)/2;
+    override var controlY2 = bind calcY(this.dstartY,this.dendY, this.dstartY,this.dendY); //this.dstartY + (this.dstartY + this.dendY)/2;
+    
+
+    var parentNode:LabelNode = null;
+    var childNode:LabelNode = null;
+
+    
+    postinit {
+
+        JavaFxBridge.bridge( parentNode.data.pos() ).to( this as FXObject ).connecting(
+          JavaFxBridge.bind( "x").to("dstartX")
+        );
+        JavaFxBridge.bridge( parentNode.data.pos() ).to( this  as FXObject ).connecting(
+          JavaFxBridge.bind( "y").to( "dstartY" )
+        );
+        JavaFxBridge.bridge( childNode.data.pos() ).to( this  as FXObject ).connecting(
+          JavaFxBridge.bind( "x").to( "dendX" ).withInverse()
+        );
+        JavaFxBridge.bridge( childNode.data.pos() ).to( this  as FXObject ).connecting(
+          JavaFxBridge.bind( "y").to( "dendY" )
+        );
+
+        
+    }
+}
+
+class NodeContainer extends Group {
+
+
+    function populateTree(parent:MNode, node:MNode) : Void {
+        var label = insertNode(parent, node);
+        label.setSelected(true);
+        print("innan Node");
+        print(node);
+        var children = node.getChildren();
+        for(l in children) {
+        //for(l in [0..children.length-1]) {
+            var n = l as MNode;
+            populateTree(node, n)
+        }
+    }
+
+
+    function insertNode(parent:MNode, node:MNode) : LabelNode {
+        var label = LabelNode {
+            data: node
+        }
+        label.bindit();
+        label.setNonEditable();
+        insert label into drawArea.content;
+
+        var parentLbl:LabelNode = null;
+        for(obj in drawArea.content) {
+            if(obj instanceof LabelNode) {
+                var ln = obj as LabelNode;
+                if(ln.data == parent) {
+                    parentLbl = ln;
                 }
             }
-    };
-    
+        }
+        if(parentLbl != null) {
+
+            var apa:Number = 0;
+            var cubicCurve = MyCubicCurve {
+                fill: Color.TRANSPARENT,
+                stroke: Color.RED,
+                parentNode: parentLbl,
+                childNode:label
+            };
+
+            insert cubicCurve into drawArea.content;
+        }
+        return label;
+    }
+}
+
+var drawArea = NodeContainer { content: [backGround],
+            
+
+
     /*onMousePressed : function(ev: MouseEvent) {
 
         if(ev.source == backGround) {
@@ -297,92 +384,13 @@ var drawArea:Group = Group { content: [backGround],
     
 
 };
-                    
-
-function traverse(parent:MNode, node:MNode) : Void {
-    var label = LabelNode {
-        data: node
-    }
-    label.bindit();
-    label.setNonEditable();
-    insert label into drawArea.content;
-    if(parent != null) {
-        var cubicCurve = CubicCurve {
-            //startX : bind selectedLbl.translateX startY : bind selectedLbl.translateY
-            controlX1 : bind 80.7 controlY1 : 21.7,
-            controlX2 : bind 122.7 controlY2 : 40.7,
-            fill: Color.TRANSPARENT,
-            stroke: Color.RED
-
-            //endX : bind efx endY : bind efy
-        };
-        JavaFxBridge.bridge( parent.pos() ).to( cubicCurve as FXObject ).connecting(
-          JavaFxBridge.bind( "x" ).to( "startX")
-        );
-        JavaFxBridge.bridge( parent.pos() ).to( cubicCurve as FXObject ).connecting(
-          JavaFxBridge.bind( "y" ).to( "startY" ).withInverse()
-        );
-        JavaFxBridge.bridge( label.data.pos() ).to( cubicCurve as FXObject ).connecting(
-          JavaFxBridge.bind( "x" ).to( "endX" ).withInverse()
-        );
-        JavaFxBridge.bridge( label.data.pos() ).to( cubicCurve as FXObject ).connecting(
-          JavaFxBridge.bind( "y" ).to( "endY" ).withInverse()
-        );
-        insert cubicCurve into drawArea.content;
-    }
-    label.setSelected(true);
-    print("innan Node");
-    print(node);
-    var children = node.getChildren();
-    for(l in children) {
-    //for(l in [0..children.length-1]) {
-        var n = l as MNode;
-        traverse(node, n)
-    }
-}
-
-traverse(null,model);
-
-/*
-if(currentTextInput != null) {
-        delete currentTextInput from drawArea.content;
-        currentTextInput = null;
-    } else {
-
-        currentTextInput.onKeyPressed = function(ev: KeyEvent) {
-            if(ev.code == KeyCode.VK_ENTER) {
-                var newText = currentTextInput.text;
-                delete currentTextInput from drawArea.content;
-                currentTextInput = null;
-
-                var node = new MNode(new Point2D(efx,efy),newText);
-                var label= LabelNode {
-                    textFill: Color.BLACK,
-                    data: node
-                }
-                label.bindit();
-                insert label into drawArea.content;
-
-                fxScalaBridge.add(selectedNode, node);
-                if(selectedNode != null) {
-                    var cubicCurve = CubicCurve {
-                        //startX : bind selectedLbl.translateX startY : bind selectedLbl.translateY
-                        controlX1 : bind 0.7 controlY1 : 0.7
-                        controlX2 : bind 0.7 controlY2 : 0.7
-                        endX : bind efx endY : bind efy
-                    };
-                    insert cubicCurve into drawArea.content;
-                }
-
-                selectedLbl = label;
-            }
-        };
-        insert currentTextInput into drawArea.content;
-        currentTextInput.requestFocus();
-    }
 
 
- */
+
+drawArea.populateTree(null,model);
+
+
+
 stage = Stage {
     title: "JavaFX / Scala : Factorials"
     visible: false // !!
@@ -391,20 +399,53 @@ stage = Stage {
         width: 800 
         height: 400
         content: {
-            VBox { content:
-                [
-                HBox {spacing: 20 content: [factButton, factLabel]},
-                drawArea
-                ]
+            Group {
+                content: [
+                    VBox { content:
+                        [
+                        HBox {spacing: 20 content: [factButton, factLabel]},
+                            drawArea
+                        ]
+                        },
+                        Rectangle {
+                            x:0
+                            y:0
+                            width:bind stage.width
+                            height:bind stage.height
+                            fill:Color.TRANSPARENT
+                            opacity:0.5
+                            translateZ:-10
+                            //focusTraversable:true,
+                    }],
+                    focusTraversable:true,
+
+                onKeyPressed: function(ev: KeyEvent) { //onKeyPressed
+                    print("Yo2 {ev.code}");
+                    if(ev.code == KeyCode.VK_I) {
+                        print("Insert");
+                        if(selectedLbl != null) {
+                            print("Insert2");
+                            var bounds = selectedLbl.boundsInParent;
+                            var mnode = new MNode(new Point2D(bounds.maxX,bounds.minY),"");
+                            /*var label= LabelNode {
+                                data: mnode
+                            }
+                            label.bindit();
+
+                            insert label into drawArea.content;*/
+                            var parent = selectedLbl.data;
+
+                            var label = drawArea.insertNode(parent, mnode);
+                            label.setEditable(drawArea);
+                        } else {
+
+                        }
+                    }
+                };
             }
         }
     }
 }
-
-
-
-                                                              
-
 
 var currentTextInput : TextBox = null;
 
