@@ -68,6 +68,26 @@ package class NodeContainer extends Group {
         }
     }
 
+    package function getAllLabelNodes() {
+        var nodes:LabelNode[] = [];
+        for(obj in StageBase.drawArea.content) {
+            if(obj instanceof LabelNode) {
+                insert (obj as LabelNode) into nodes;
+            }
+        }
+        return nodes;
+    }
+    package function findNodeByModel(parent:MNode) : LabelNode {
+        for(obj in StageBase.drawArea.content) {
+            if(obj instanceof LabelNode) {
+                var ln = obj as LabelNode;
+                if(ln.data == parent) {
+                    return ln;
+                }
+            }
+        }
+        return null;
+    }
 
     package function insertNode(parent:MNode, node:MNode) : LabelNode {
         var label = LabelNode {
@@ -77,21 +97,13 @@ package class NodeContainer extends Group {
         label.setNonEditable();
         insert label into StageBase.drawArea.content;
 
-        var parentLbl:LabelNode = null;
-        for(obj in StageBase.drawArea.content) {
-            if(obj instanceof LabelNode) {
-                var ln = obj as LabelNode;
-                if(ln.data == parent) {
-                    parentLbl = ln;
-                }
-            }
-        }
+        var parentLbl:LabelNode = findNodeByModel(parent);
+        
         if(parentLbl != null) {
 
             var apa:Number = 0;
             var cubicCurve = NodeConnector {
                 fill: Color.TRANSPARENT,
-                stroke: Color.RED,
                 parentNode: parentLbl,
                 childNode:label
             };
@@ -100,4 +112,33 @@ package class NodeContainer extends Group {
         }
         return label;
     }
+    /*package function getDistance(code:Int, n1:LabelNode, n2:LabelNode) : Number {
+
+    }*/
+
+    package function getDirection(code:KeyCode) : Direction {
+     var dir:Direction = null;
+        if(code == KeyCode.VK_LEFT) {
+            dir = Direction.LEFT;
+        } else if(code == KeyCode.VK_RIGHT) {
+            dir = Direction.RIGHT;
+        } else if(code == KeyCode.VK_UP) {
+            dir = Direction.UP;
+        } else if(code == KeyCode.VK_DOWN) {
+           dir = Direction.DOWN;
+        } else { }
+        return dir;
+    }
+
+    package function findNearest(code:KeyCode, origin:LabelNode) : LabelNode {
+
+        var dir = getDirection(code);
+
+        println("tho");
+        var foundMNode = NodeHelper.findNearest(dir, origin.data);
+        var foundLabelNode = findNodeByModel(foundMNode);
+        return foundLabelNode;
+    }
 }
+import se.pearglans.NodeHelper;
+import se.pearglans.Direction;

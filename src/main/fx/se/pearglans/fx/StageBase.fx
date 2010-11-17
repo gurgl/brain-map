@@ -30,6 +30,7 @@ import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.InputMethodEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Container;
 
@@ -42,6 +43,7 @@ import com.sun.javafx.runtime.FXObject;
 
 import se.pearglans.fx.JavaFXScalaBridge;
 import se.pearglans.*;
+import se.pearglans.Tjo;
 
 import LabelNode;
 
@@ -79,7 +81,7 @@ def factButton: Button = Button { font: font text: " 1 ! "
     }
 }
 
-def model:MNode = fxScalaBridge.getModel();
+def modelToLoad:MNode = Tjo.loadExampleModel();
 
 package var draggedNode:Node;
 
@@ -107,91 +109,124 @@ var backGround = Rectangle {
             //insert LineTo { x: efx, y: efy } into path.elements;
         }
 }
-var backGroundClip = Rectangle {
-        width: 800,
-        height: 400,
-        x:0,
-        y:0,
-        fill:Color.TRANSPARENT
-        translateZ:2,
-
-}
-
 
 package var drawArea = NodeContainer { content: [backGround] };
 
-
 package var currentTextInput : TextBox;
 
-package public-read var selectedNode : MNode;
+package var selectedNode : MNode;
 
 var labels : MNode[] = [];
 
+var menuArea = HBox {spacing: 20 content: []}
+var sceneContent = Group {
+    content: [
+        VBox { content:
+            [
+                menuArea,
+                drawArea
+            ]
+            },
+            Rectangle {
+                x:0
+                y:0
+                width:bind stage.width
+                height:bind stage.height
+                fill:Color.TRANSPARENT
+                opacity:0.5
+                translateZ:-10
+                //focusTraversable:true,
+        }],
+        focusTraversable:true,
+
+    onKeyPressed: function(ev: KeyEvent) { //onKeyPressed
+        print("Yo2 {ev.code}");
+        if(ev.code == KeyCode.VK_F and ev.controlDown) {
+            var searchLbl = Label {text:"find"}
+            var searchBox:TextBox = TextBox {
+                focusTraversable:true,
+                columns: 25,
+
+                onKeyPressed: function(ev: KeyEvent) {
+                    if(ev.code == KeyCode.VK_ENTER) {
+                        delete searchLbl from menuArea.content;
+                        delete searchBox from menuArea.content;
+                    }
+                },       
+
+                style: "-fx-font: 25pt ""Impact, Helvetica"";-fx-font-style: regular;-fx-text-fill: black; -fx-border-color: white;-fx-border-width: 1;-fx-background-color: white;-fx-caret-color:white"
+                ,
+            };
+
+            var dummy = bind searchBox.focused on replace {
+                if(not searchBox.focused) {
+                            delete searchLbl from menuArea.content;
+                            delete searchBox from menuArea.content;
+                    }
+            };
+            insert searchLbl into menuArea.content;
+            insert searchBox into menuArea.content;
+
+            searchBox.requestFocus();
+        } else if(ev.code == KeyCode.VK_DELETE) {
+        } else if(ev.code == KeyCode.VK_I) {
+            //Tjo.remove(selectedLbl.data);        
+
+
+
+            print("Insert");
+            if(selectedLbl != null) {
+                print("Insert2");
+
+                var bounds = selectedLbl.boundsInParent;
+                var mnode = new MNode(new Point2D(bounds.maxX,bounds.minY),"");
+
+                var parent = selectedLbl.data;
+                println("parent  {parent}");
+                var label = drawArea.insertNode(parent, mnode);
+                label.setEditable(drawArea, parent);
+            } else {
+
+            }
+        } else if(ev.code == KeyCode.VK_LEFT or ev.code == KeyCode.VK_RIGHT or
+            ev.code == KeyCode.VK_DOWN or ev.code == KeyCode.VK_UP) {
+
+            if(ev.controlDown) {
+                var dir = drawArea.getDirection(ev.code);
+                //NodeHelper.translate()
+            } else {
+                if(selectedLbl != null) {
+                    var nearest = drawArea.findNearest(ev.code,selectedLbl);
+                    if(nearest != null) {
+                        nearest.setSelected(true);
+                    }
+                }
+            }
+        }
+    };
+};
 
 function run() {
 
-    drawArea.populateTree(null,model);
+    drawArea.populateTree(null,modelToLoad);
 
     stage = Stage {
         title: "JavaFX / Scala : Factorials"
         visible: false // !!
+        width:800
+        height:400
         onClose: function() { fxScalaBridge.closeScala(); }
         scene: Scene {
-            width: 800
-            height: 400
+            width: stage.width
+            height: stage.height
             content: {
-                Group {
-                    content: [
-                        VBox { content:
-                            [
-                            HBox {spacing: 20 content: [factButton, factLabel]},
-                                drawArea
-                            ]
-                            },
-                            Rectangle {
-                                x:0
-                                y:0
-                                width:bind stage.width
-                                height:bind stage.height
-                                fill:Color.TRANSPARENT
-                                opacity:0.5
-                                translateZ:-10
-                                //focusTraversable:true,
-                        }],
-                        focusTraversable:true,
-
-                    onKeyPressed: function(ev: KeyEvent) { //onKeyPressed
-                        print("Yo2 {ev.code}");
-                        if(ev.code == KeyCode.VK_I) {
-                            print("Insert");
-                            if(selectedLbl != null) {
-                                print("Insert2");
-                                var bounds = selectedLbl.boundsInParent;
-                                var mnode = new MNode(new Point2D(bounds.maxX,bounds.minY),"");
-                                /*var label= LabelNode {
-                                    data: mnode
-                                }
-                                label.bindit();
-
-                                insert label into drawArea.content;*/
-                                var parent = selectedLbl.data;
-
-                                var label = drawArea.insertNode(parent, mnode);
-                                label.setEditable(drawArea);
-                            } else {
-
-                            }
-                        }
-                    };
-                }
+                sceneContent
             }
         }
     }
 
+    sceneContent.requestFocus();
 
-    drawArea.requestFocus();
-
-    fxScalaBridge.start();
-    
+    fxScalaBridge.start();    
 }
 

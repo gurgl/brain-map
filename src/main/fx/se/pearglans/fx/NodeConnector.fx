@@ -45,6 +45,8 @@ import se.pearglans.*;
  */
 package class NodeConnector extends CubicCurve {
 
+    override def stroke = Color.RED;
+
     /*var dsx:Number;
     var dex:Number;
     var dsy:Number;
@@ -55,10 +57,15 @@ package class NodeConnector extends CubicCurve {
     public var dstartY:Number = 0; //bind dsy;
     public var dendY:Number = 0; //bind dey; //on invalidate { println ("ooooiii")};
 
-    override def startX = bind this.dstartX; //{ java.lang.Math.cos(_startX - _endY ) * 20 + _startX };
-    override def startY = bind this.dstartY;
-    override def endX = bind this.dendX;
-    override def endY = bind this.dendY;
+    var _startY = bind (this.dstartY + this.parentNode.boundsInLocal.maxY);
+    var _startX = bind (if (this.dstartX > this.dendX) this.dstartX else this.dstartX + this.parentNode.boundsInLocal.maxX);
+    var _endY = bind (this.dendY + this.childNode.boundsInLocal.maxY);
+    var _endX = bind (if (this.dstartX < this.dendX) this.dendX else this.dendX + this.childNode.boundsInLocal.maxX);
+    
+    override var startX = bind this._startX; //{ java.lang.Math.cos(_startX - _endY ) * 20 + _startX };
+    override var startY = bind this._startY;
+    override var endX = bind this._endX;
+    override var endY = bind this._endY;
 
     //                                                           sx
     //100 - (100 - 50)/2 =                                          ex
@@ -78,11 +85,11 @@ package class NodeConnector extends CubicCurve {
     }
 
 
-    override var controlX1 = bind calcX(this.dstartX,this.dstartY,this.dendX,this.dendY); // + (this.dstartX - this.dendX)/2;
-    override var controlX2 = bind calcX(this.dendX,this.dendY,this.dstartX,this.dstartY); //this.dstartX + (this.dstartX - this.dendX)/2;
+    override var controlX1 = bind calcX(this._startX,this._startY,this._endX,this._endY); // + (this.dstartX - this.dendX)/2;
+    override var controlX2 = bind calcX(this._endX,this._endY,this._startX,this._startY); //this.dstartX + (this.dstartX - this.dendX)/2;
 
-    override var controlY1 = bind calcY(this.dstartX,this.dstartY,this.dendX,this.dendY); //this.dstartY + (this.dstartY + this.dendY)/2;
-    override var controlY2 = bind calcY(this.dendX,this.dendY,this.dstartX,this.dstartY); //this.dstartY + (this.dstartY + this.dendY)/2;
+    override def controlY1 = bind calcY(this._startX,this._startY,this._endX,this._endY); //this.dstartY + (this.dstartY + this.dendY)/2;
+    override var controlY2 = bind calcY(this._endX,this._endY,this._startX,this._startY); //this.dstartY + (this.dstartY + this.dendY)/2;
 
 
     public var parentNode:LabelNode = null;

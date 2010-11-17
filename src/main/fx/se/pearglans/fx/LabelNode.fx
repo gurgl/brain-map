@@ -27,7 +27,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Path;
 import javafx.scene.shape.CubicCurve;
-import javafx.scene.shape.LineTo;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.KeyEvent;
@@ -101,8 +101,10 @@ public class LabelNode extends Group {
          delete this from container.content;
       }
 
-
-     package function setEditable(container:Group) : Void {
+    package function setEditable(container:Group) : Void {
+        setEditable(container,null)
+    }
+     package function setEditable(container:Group,insertedAtNode:MNode) : Void {
          if(this.currentContent != null) {
              delete this.currentContent from content;
          }
@@ -123,8 +125,8 @@ public class LabelNode extends Group {
                          data.text_$eq(newText);
                          setNonEditable();
                          StageBase.currentTextInput = null;
-
-                         StageBase.fxScalaBridge.add(StageBase.selectedNode, data);
+                         println("insertedAtNode   {insertedAtNode}");
+                         StageBase.fxScalaBridge.add(data, insertedAtNode);
 
                          this.setSelected(true);
                      }
@@ -157,10 +159,23 @@ public class LabelNode extends Group {
          onMouseReleased = function (ev: MouseEvent) : Void {
              StageBase.draggedNode = null;
          }
+
      };
 
      var texten:String = "";
 
      //function getData() : MNode;
      var getData : function() : MNode;
+     postinit {
+     
+         /*var underStroke = Line {
+            stroke: Color.RED;
+            startX:bind LabelNode.this.boundsInLocal.minX,
+            endX:bind LabelNode.this.boundsInLocal.maxX,
+            startY:bind LabelNode.this.boundsInLocal.minY,
+            endY:bind LabelNode.this.boundsInLocal.maxY,
+
+        }
+        insert underStroke into this.content;*/
+     }
  };

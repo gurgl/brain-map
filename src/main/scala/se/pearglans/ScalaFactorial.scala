@@ -19,7 +19,7 @@ final class ScalaEntry(private val fx: ScalaToJavaFX) extends RunnableFuture {
 
   private var fact: Factorial = null
 
-  private var root:MNode = null
+  private var root:MNode = Tjo.model
   // JavaFX Interface RunnableFuture
   def run: Unit = {
     fact = new Factorial {
@@ -32,10 +32,11 @@ final class ScalaEntry(private val fx: ScalaToJavaFX) extends RunnableFuture {
   }
 
   def addNode(item:MNode, target:MNode) {
-    root match {
+    target match {
       case null => root = item
       case _ => target.add(item) 
     }
+    println("ACTION : ADDING NODE root " + target )
     fx.updateTree(target)
   }
 
@@ -54,8 +55,17 @@ import math.BigInt
 
 object Tjo {
 
-  def getModel : MNode = {
+  var model:MNode = _ 
+
+  def loadExampleModel : MNode = {
     println("woo")
+    println("woo")
+    println("woo")
+    println("woo")
+    println("woo")
+    println("woo")
+    println("woo")
+
     val r = new MNode(new Point2D(50,50),"tja")
     val child11 = new MNode(new Point2D(150,50),"tja2")
     val child12 = new MNode(new Point2D(50,150),"tja3")
@@ -63,7 +73,19 @@ object Tjo {
     r.children = List(child11,child12)
     child12.children = List(child21)
     println("Tjing" + r)
+    model = r
     r
+  }
+
+  def flattened() : List[MNode] = {
+    println("m" + (model == null))
+    def dig(n:MNode) : List[MNode] = {
+      n :: n.children.flatMap(
+        c => dig(c)
+      )
+    }
+
+    dig(model)
   }
   
 }
@@ -134,6 +156,56 @@ class Point2DBean(_x:Float,_y:Float) extends Point2D(_x,_y) with HasPropertyChan
 }
 
 
+
+object NodeHelper {
+  import se.pearglans.Direction
+  def findNearest(dir: Direction, target: MNode): MNode = {
+
+    var min: Float = 10000.0f
+    var nearest:Option[MNode] = None
+    def isLess(a:MNode,b:MNode, g:MNode => Float) : Option[(MNode,Float)] = {
+      val heur = g(a) - g(b)
+      println("heur" +heur)
+      if(heur > 0 && heur < min) {
+        Some((b,heur))
+      } else None
+    }
+
+
+    val notItself = Tjo.flattened().filter(_.text != target.text)
+    println("yiiiiij" + notItself.size + " ")
+    notItself.foreach(println(_))
+    notItself.foreach {
+      n => {
+        val (a,b) = dir match {
+          case Direction.RIGHT | Direction.DOWN =>  (n,target)
+          case Direction.LEFT | Direction.UP => (target,n)
+        }
+        val acc = dir match {
+          case Direction.RIGHT | Direction.LEFT =>
+            (g:MNode) => g.pos.x
+          case Direction.DOWN | Direction.UP =>
+            (g:MNode) => g.pos.y
+        }
+        isLess(a,b,acc) match {
+          case Some((nn, nmin)) =>
+             min = nmin
+             nearest = Some(n)
+          case _ =>
+        }                                                   
+      }
+    }
+    println(min + " : " + nearest)
+    nearest.getOrElse(null)
+  }
+}
+/*
+object Direction extends Enumeration {
+      type Direction = Value
+      val LEFT, RIGHT, UP, DOWN = Value
+    }
+*/
+
 case class MNode(@BeanProperty val pos:Point2DBean, var text:String) extends HasPropertyChangeListener {
   //List[MNode]
   //def this() = this(Nil,null)
@@ -155,7 +227,7 @@ case class MNode(@BeanProperty val pos:Point2DBean, var text:String) extends Has
   }
 
   def add(item:MNode) {
-    item.children =  item :: this.children     
+    this.children =  item :: this.children     
   }
 
   def setText(v:String) : Unit =  {
