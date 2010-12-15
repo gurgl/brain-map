@@ -24,7 +24,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Container;
-
+import javafx.scene.effect.DropShadow;
 
 import com.cedarsoft.fx.JavaFxBridge;
 import com.sun.javafx.runtime.FXObject;
@@ -95,6 +95,11 @@ package class NodeConnector extends CubicCurve {
     public var parentNode:LabelNode = null;
     public var childNode:LabelNode = null;
 
+    override var effect = DropShadow {
+                    radius: 4,
+                    offsetY: 4,
+                     offsetX: 4,
+                }
 
     postinit {
 

@@ -32,9 +32,11 @@ import javafx.scene.shape.MoveTo;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.InputMethodEvent;
 import javafx.scene.layout.Container;
-
-
+import javafx.scene.effect.Effect;
+import javafx.scene.effect.Glow;
+import javafx.scene.effect.BlendMode;
 import com.cedarsoft.fx.JavaFxBridge;
 import com.sun.javafx.runtime.FXObject;
 
@@ -43,6 +45,7 @@ import com.sun.javafx.runtime.FXObject;
 
 import se.pearglans.fx.JavaFXScalaBridge;
 import se.pearglans.*;
+
 
 /**
  * Created by IntelliJ IDEA.
@@ -54,23 +57,41 @@ import se.pearglans.*;
 
 public class LabelNode extends Group {
 
+    override var blendMode =  BlendMode.MULTIPLY;
+
+     package var parentConnector : NodeConnector = null;
 
      /*override var translateY = bind this.data.pos().y();*/
      package var data:MNode;
 
-     override var style = "-fx-font: 25pt ""Impact, Helvetica"";-fx-font-style: regular;-fx-text-fill: black; -fx-border-color: white;-fx-border-width: 1;-fx-background-color: blue;-fx-caret-color:white";
+     //override var style = "-fx-font: 25pt ""Impact, Helvetica"";-fx-font-style: regular;-fx-text-fill: black; -fx-border-color: white;-fx-border-width: 1;-fx-background-color: blue;-fx-caret-color:white";
 
+     var lblEffect : Effect = javafx.scene.effect.Identity {};
      var currentContent : Node = null;
+     var lblStyle : String = "";
+     var cfill: Color = Color.BLACK;
 
-     var cfill: Color = Color.TRANSPARENT;
+        override var onMouseDragged = function(me:MouseEvent) : Void {
+            //StageBase.drawArea.removeNode(this)
+        }
+
+        override var onKeyPressed = function(e:KeyEvent) : Void {
+            if(e.code == KeyCode.VK_F2) {
+                this.setEditable(StageBase.drawArea);
+            }
+        }
 
      package function setNonEditable() : Void {
          if(this.currentContent != null) {
              var cont = this.currentContent;
              delete cont from content;
          }
-         var currentContent = Label {
+         currentContent = Label {
+
              textFill: bind cfill
+             effect: bind lblEffect
+             styleClass: bind lblStyle with inverse            
+             opacity: 1.0
 
          }
          JavaFxBridge.bridge( this.data ).to( currentContent as FXObject ).connecting(
@@ -87,11 +108,14 @@ public class LabelNode extends Group {
              StageBase.selectedLbl.setSelected(false);
          }
          if(sele) {
-             cfill = Color.GREEN;
-             currentContent.style = "-fx-font: 25pt ""Impact, Helvetica"";-fx-font-style: regular;-fx-text-fill: black; -fx-border-color: white;-fx-border-width: 1;-fx-background-color: green;-fx-caret-color:white";
+             cfill = Color.BLUE;
+            lblEffect = null;
+             //lblEffect = Glow { level : 0.9 }
+             //currentContent.style = "-fx-font: 25pt ""Impact, Helvetica"";-fx-font-style: regular;-fx-text-fill: black; -fx-border-color: white;-fx-border-width: 1;-fx-background-color: blue;-fx-caret-color:white";
          } else {
             cfill = Color.BLACK;
-             currentContent.style = "-fx-font: 25pt ""Impact, Helvetica"";-fx-font-style: regular;-fx-text-fill: black; -fx-border-color: white;-fx-border-width: 1;-fx-background-color: white;-fx-caret-color:white";
+            lblEffect = null; //Glow { level : 1 };
+             //currentContent.style = "-fx-font: 25pt ""Impact, Helvetica"";-fx-font-style: regular;-fx-text-fill: black; -fx-border-color: white;-fx-border-width: 1;-fx-background-color: white;-fx-caret-color:white";
 
          }
          StageBase.selectedLbl = this;
@@ -104,38 +128,38 @@ public class LabelNode extends Group {
     package function setEditable(container:Group) : Void {
         setEditable(container,null)
     }
+
      package function setEditable(container:Group,insertedAtNode:MNode) : Void {
          if(this.currentContent != null) {
-             delete this.currentContent from content;
+             delete this.currentContent from this.content;
          }
 
          var textBox : TextBox = TextBox {
              columns: 25,
-             opacity:0.5,
-             style: "-fx-font: 25pt ""Impact, Helvetica"";-fx-font-style: regular;-fx-text-fill: black; -fx-border-color: white;-fx-border-width: 1;-fx-background-color: red;-fx-caret-color:white"
+             text : data.text()
+             //oopacity:0.5,
+             //style: "-fx-font: 25pt ""Impact, Helvetica"";-fx-font-style: regular;-fx-text-fill: black; -fx-border-color: white;-fx-border-width: 1;-fx-background-color: red;-fx-caret-color:white"
              ,
              onKeyPressed : function(ev: KeyEvent) {
-                 print("Yo");
+            
                  if(ev.code == KeyCode.VK_ENTER) {
                      var newText = textBox.text;
                      if(newText == "") {
                          remove(container);
                      } else {
-                         print(newText);
                          data.text_$eq(newText);
                          setNonEditable();
                          StageBase.currentTextInput = null;
-                         println("insertedAtNode   {insertedAtNode}");
                          StageBase.fxScalaBridge.add(data, insertedAtNode);
 
                          this.setSelected(true);
                      }
                  }
              };
+
          }
 
          this.currentContent = textBox;
-         print("Tja");
          insert this.currentContent into content;
          textBox.requestFocus();
      }
@@ -156,8 +180,32 @@ public class LabelNode extends Group {
              this.setSelected(true);
          }
 
+         onMouseEntered = function (ev: MouseEvent) : Void {
+            if(ev.controlDown and StageBase.draggedNode != this) {
+                println("ooover");
+                this.lblStyle="my-rect";
+            }
+         }
+         onMouseExited = function (ev: MouseEvent) : Void {
+            if(ev.controlDown and StageBase.draggedNode != this) {
+                println("out");
+                this.lblStyle="my-rect";
+            }
+         }
+
          onMouseReleased = function (ev: MouseEvent) : Void {
-             StageBase.draggedNode = null;
+             if(StageBase.draggedNode != null) {
+                 if(ev.controlDown) {
+                    println("moving");
+                     if(this == StageBase.draggedNode) {
+                            
+                     } else {
+                            StageBase.drawArea.removeNode(StageBase.draggedNode);
+                            StageBase.drawArea.populateTree(this.data,StageBase.draggedNode.data);
+                            StageBase.draggedNode = null;                        
+                     }
+                 }
+             }
          }
 
      };

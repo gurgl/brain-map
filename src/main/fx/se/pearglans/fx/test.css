@@ -1,0 +1,36 @@
+Scene {
+    fill: #ffffff;
+}
+.bg {
+    fill: #ccccff;
+    stroke: #333399;
+}
+Rectangle {
+    arcWidth: 10;
+    arcHeight: 10;
+}
+Circle {
+    stroke: #ffffcc;
+    strokeWidth: 10;
+}
+Text {
+    font-family: "Helvetica, Arial";
+    font-size: 20pt;
+}
+#styleText {
+    font-size: 30pt;
+    font-style: italic;
+    font-family: "Georgia";
+}
+
+.my-rect {
+ -fx-border-color:red;
+  -fx-border-style:bevel;
+   -fx-border-width:2
+   }
+
+.my-rect-clear {
+ -fx-border-color:blue;
+  -fx-border-style:bevel;
+   -fx-border-width:0
+   }
